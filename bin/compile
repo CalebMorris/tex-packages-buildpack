@@ -21,9 +21,18 @@ mkdir -p $TEXLIVE_HOME
 mkdir -p $TEXLIVE_CACHE
 mkdir -p `dirname $PROFILE_D`
 
+function test {
+    "$@"
+    local status=$?
+    if [ $status -ne 0 ]; then
+        echo "error with $1" >&2
+    fi
+    return $status
+}
+
 if [ -f $TEXLIVE_CACHE/VERSION ] && (( $VERSION == `cat $TEXLIVE_CACHE/VERSION` )); then
     # Get TeX Live from the cache if possible
-    build-step "Installing TeX Live $VERSION from cache"
+    build-step "Copying TeX Package Files from cache: Package $VERSION"
     cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
 else
     # Get TeX Live from S3 if necessary
@@ -45,11 +54,9 @@ else
     echo $VERSION > $TEXLIVE_CACHE/VERSION
 fi
 
-# Check for an essential binary to make sure it's installed
-if [ ! `which pdflatex` ]; then
-    build-warn "TeX Live installation failed"
-    exit 1
-fi
-
-# Set up the environment for runtimes now that compilation has finished
-echo 'export PATH=$HOME/.texlive/bin/x86_64-linux:$PATH' >> $PROFILE_D
+build-step "Setting Up Package Configuration : Buildling KPathSea Database"
+test mktexlsr
+build-step "Creating Font Mappings"
+test updmap
+build-step "Formatting and Compiling Packages"
+test fmtutil --all
