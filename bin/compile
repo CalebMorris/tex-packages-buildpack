@@ -3,6 +3,13 @@
 
 env=$(cd "$3/" && pwd)
 
+# Set Buildpack ENV Variables
+for e in TEXLIVE_DOMAIN; do
+  if [ -f $env/$e ]; then
+    export "$e=$(cat $env/$e)"
+  fi
+done
+
 BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
@@ -23,9 +30,6 @@ mkdir -p $TEXLIVE_HOME
 mkdir -p $TEXLIVE_CACHE
 mkdir -p `dirname $PROFILE_D`
 
-echo $env
-echo $TEXLIVE_DOMAIN
-
 # function test {
 #     "$@"
 #     local status=$?
@@ -34,6 +38,8 @@ echo $TEXLIVE_DOMAIN
 #     fi
 #     return $status
 # }
+
+build-step "Printing Test Info: version: $VERSION , TEXLIVE_DOMAIN: $TEXLIVE_DOMAIN"
 
 # if [ -f $TEXLIVE_CACHE/VERSION ] && (( $VERSION == `cat $TEXLIVE_CACHE/VERSION` )); then
 #     # Get TeX Live from the cache if possible
@@ -65,5 +71,3 @@ echo $TEXLIVE_DOMAIN
 # test updmap
 # build-step "Formatting and Compiling Packages"
 # test fmtutil --all
-
-build-step "Copying TeX Package Files from cache: Package $VERSION"
