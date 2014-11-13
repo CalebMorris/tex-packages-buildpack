@@ -14,7 +14,6 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
 
-TEXLIVE_DOMAIN=$TEXLIVE_DOMAIN
 VERSION=`curl $TEXLIVE_DOMAIN/PACKAGES-VERSION -s`
 TEXLIVE_URL="$TEXLIVE_DOMAIN/texlive-$VERSION.tar.gz"
 TEXLIVE_HOME=$BUILD_DIR/.texlive
@@ -30,44 +29,44 @@ mkdir -p $TEXLIVE_HOME
 mkdir -p $TEXLIVE_CACHE
 mkdir -p `dirname $PROFILE_D`
 
-# function test {
-#     "$@"
-#     local status=$?
-#     if [ $status -ne 0 ]; then
-#         echo "error with $1" >&2
-#     fi
-#     return $status
-# }
+function test {
+    "$@"
+    local status=$?
+    if [ $status -ne 0 ]; then
+        echo "error with $1" >&2
+    fi
+    return $status
+}
 
-build-step "Printing Test Info: version: $VERSION , TEXLIVE_DOMAIN: $TEXLIVE_DOMAIN"
+if [ -f $TEXLIVE_CACHE/PACKAGES-VERSION ] && (( $VERSION == `cat $TEXLIVE_CACHE/PACKAGES-VERSION` )); then
+    # Get TeX Live from the cache if possible
+    build-step "Copying TeX Package Files from cache: Package $VERSION"
+    # cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
+else
+    # # Get TeX Live from S3 if necessary
+    # if [ -f "$TEXLIVE_CACHE/VERSION" ]; then
+    #     build-step "Upgrading to TeX Live $VERSION"
+    # else
+    #     build-step "Fetching TeX Live $VERSION"
+    # fi
 
-# if [ -f $TEXLIVE_CACHE/VERSION ] && (( $VERSION == `cat $TEXLIVE_CACHE/VERSION` )); then
-#     # Get TeX Live from the cache if possible
-#     build-step "Copying TeX Package Files from cache: Package $VERSION"
-#     cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
-# else
-#     # Get TeX Live from S3 if necessary
-#     if [ -f "$TEXLIVE_CACHE/VERSION" ]; then
-#         build-step "Upgrading to TeX Live $VERSION"
-#     else
-#         build-step "Fetching TeX Live $VERSION"
-#     fi
+    # curl $TEXLIVE_URL -s -o - | tar xzf - -C $TEXLIVE_HOME
 
-#     curl $TEXLIVE_URL -s -o - | tar xzf - -C $TEXLIVE_HOME
+    # # Make sure the cache is empty
+    # rm -rf $TEXLIVE_CACHE/*
 
-#     # Make sure the cache is empty
-#     rm -rf $TEXLIVE_CACHE/*
+    # # Store a copy of it in the cache so it doesn't have to be fetched again
+    # cp -R $TEXLIVE_HOME/* $TEXLIVE_CACHE
 
-#     # Store a copy of it in the cache so it doesn't have to be fetched again
-#     cp -R $TEXLIVE_HOME/* $TEXLIVE_CACHE
+    # Store the version for later
+    echo $VERSION > $TEXLIVE_CACHE/PACKAGES-VERSION
 
-#     # Store the version for later
-#     echo $VERSION > $TEXLIVE_CACHE/VERSION
-# fi
+    build-step "Saved Version #: Package $VERSION"
+fi
 
-# build-step "Setting Up Package Configuration : Buildling KPathSea Database"
-# test mktexlsr
-# build-step "Creating Font Mappings"
-# test updmap
-# build-step "Formatting and Compiling Packages"
-# test fmtutil --all
+build-step "Setting Up Package Configuration : Buildling KPathSea Database"
+test mktexlsr
+build-step "Creating Font Mappings"
+test updmap
+build-step "Formatting and Compiling Packages"
+test fmtutil --all
