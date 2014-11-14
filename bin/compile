@@ -4,7 +4,7 @@
 env=$(cd "$3/" && pwd)
 
 # Set Buildpack ENV Variables
-for e in TEXLIVE_DOMAIN; do
+for e in TEXLIVE_DOMAIN AMQP_URL; do
   if [ -f $env/$e ]; then
     export "$e=$(cat $env/$e)"
   fi
