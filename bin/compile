@@ -4,7 +4,7 @@
 env=$(cd "$3/" && pwd)
 
 # Set Buildpack ENV Variables
-for e in TEXLIVE_DOMAIN AMQP_URL; do
+for e in TEXLIVE_DOMAIN AMQP_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
   if [ -f $env/$e ]; then
     export "$e=$(cat $env/$e)"
   fi
