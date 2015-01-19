@@ -68,6 +68,7 @@ build-step "Setting Up Package Configuration : Buildling KPathSea Database"
 test mktexlsr
 build-step "Creating Font Mappings"
 test updmap
+test updmap --enable Map libertine.map
 build-step "Formatting and Compiling Packages"
 test fmtutil --all
 build-step "Generating Package Hash"
